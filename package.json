@@ -1,0 +1,11 @@
+{
+	"name": "kiss-kiss-related-products",
+	"version": "0.1.0",
+	"private": true,
+	"description": "Cross-selling related products based on brands and similar categories.",
+	"main": "kiss-kiss-related-products.php",
+	"author": "VSCM",
+	"license": "ISC",
+	"dependencies": {},
+	"devDependencies": {}
+}

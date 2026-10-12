@@ -1,0 +1,40 @@
+{
+	"name": "vscm/woo-related-products",
+	"description": "A plugin to display related products in WooCommerce based on various criteria.",
+	"keywords": [ "woocommerce", "related-products", "plugin" ],
+	"homepage": "https://vasenin.com",
+	"type": "wp-plugin",
+	"require-dev": {
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"wp-coding-standards/wpcs": "*",
+		"phpcompatibility/phpcompatibility-wp": "*",
+		"szepeviktor/phpstan-wordpress": "^1.3",
+		"slevomat/coding-standard": "^8.19",
+		"phpunit/phpunit": "^10.5",
+		"yoast/phpunit-polyfills": "^2.0"
+	},
+	"prefer-stable" : true,
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	},
+	"autoload": {
+		"psr-4": {
+			"Vscm\\WooRelatedProducts\\": "src/",
+			"Vscm\\WooRelatedProductsTest\\": "tests/php/tests/"
+
+		}
+	},
+	"require": {
+		"psr/container": "^2.0"
+	},
+	"scripts": {
+		"lint": "phpcs",
+		"format": "phpcbf",
+		"phpstan": "vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=1G",
+		"test": "phpunit",
+		"makepot": "wp i18n make-pot . languages/kiss-kiss-related-products.pot --slug=kiss-kiss-related-products --domain=kiss-kiss-related-products"
+
+	}
+}
