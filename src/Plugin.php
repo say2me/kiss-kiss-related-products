@@ -9,8 +9,6 @@ declare(strict_types = 1);
 
 namespace Vscm\WooRelatedProducts;
 
-use Psr\Container\ContainerInterface;
-
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -45,10 +43,10 @@ final class Plugin {
 	 * @param  string $id Service identifier.
 	 * @param  object $service Service instance to add.
 	 *
-	 * @return ContainerInterface
+	 * @return void
 	 * @throws ContainerException If service with given id already exists.
 	 */
-	public function add_service( $id, $service ) {
+	public function add_service( $id, $service ): void {
 		if ( $this->container->has( $id ) ) {
 			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			throw new ContainerException( sprintf( 'Service with id %s already exists.', $id ) );
@@ -58,7 +56,6 @@ final class Plugin {
 		if ( is_a( $service, InitableInterface::class ) ) {
 			$this->initable_services[] = $id;
 		}
-		return $service;
 	}
 
 	/**

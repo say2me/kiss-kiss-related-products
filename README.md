@@ -4,7 +4,6 @@ Keeps the related products on your WooCommerce product pages relevant: other pro
 
 **This repository is a read-only mirror.** Pull requests and issues are disabled here, and anything pushed to it is overwritten by the next sync.
 
-- **Development happens on GitLab:** <https://gitlab.com/vscm/woo-related-products>
 - **Support happens on the wordpress.org support forum** for the plugin, not in this repository.
 
 Install it from the WordPress plugins screen, or copy this directory to `wp-content/plugins/kiss-kiss-related-products/`. Requires WordPress 6.7+, PHP 8.1+ and WooCommerce.

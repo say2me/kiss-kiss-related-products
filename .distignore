@@ -19,7 +19,6 @@ phpunit.xml
 phpunit.xml.dist
 phpcs.xml.dist
 README.md
-composer.json
 composer.lock
 webpack.config.js
 tsconfig.json
