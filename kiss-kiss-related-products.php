@@ -59,6 +59,8 @@ function plugin(): Plugin {
 		// Defaults first: the plugin works with nothing picked, pinned or excluded.
 		$container->set( Woo\RelatedPicks::class, new Woo\NullRelatedPicks() );
 		$container->set( Woo\RelatedCuration::class, new Woo\NullRelatedCuration() );
+		// Once connected, the stored service picks replace the defaults; an extension may still replace them.
+		Suggestions\Services::defaults( $container );
 		/**
 		 * Lets an extension replace the defaults above, before anything is built from them.
 		 *
@@ -70,8 +72,12 @@ function plugin(): Plugin {
 			new Woo\CrossSellingRelatedProducts( $container->get( Woo\RelatedPicks::class ), $container->get( Woo\RelatedCuration::class ) )
 		);
 		$plugin->add_service( Admin\Settings::class, new Admin\Settings() );
-		$plugin->add_service( Admin\SettingsPage::class, new Admin\SettingsPage( $container->get( Admin\Settings::class ) ) );
 		$plugin->add_service( Rest\SettingsRoute::class, new Rest\SettingsRoute( $container->get( Admin\Settings::class ) ) );
+		$plugin->add_service( Identity\Challenge::class, new Identity\Challenge() );
+		$plugin->add_service( Rest\VerifyRoute::class, new Rest\VerifyRoute( $container->get( Identity\Challenge::class ) ) );
+		Suggestions\Services::register( $plugin, $container );
+		$plugin->add_service( Admin\ConnectionPanel::class, new Admin\ConnectionPanel( $container->get( Suggestions\Connection::class ), $container->get( Suggestions\SiteStatus::class ) ) );
+		$plugin->add_service( Admin\SettingsPage::class, new Admin\SettingsPage( $container->get( Admin\Settings::class ), $container->get( Admin\ConnectionPanel::class ) ) );
 		/**
 		 * Lets an extension register its own services, once the plugin's are in place and before start.
 		 *
@@ -110,3 +116,8 @@ add_action(
 		plugin()->start();
 	}
 );
+
+/**
+ * Create the suggestion tables on activation; later versions bring them up to date on `plugins_loaded`.
+ */
+register_activation_hook( __FILE__, array( Suggestions\Schema::class, 'install' ) );

@@ -1,13 +1,16 @@
 <?xml version="1.0"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="tests/php/bootstrap.php" backupGlobals="false" colors="true" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" cacheDirectory=".phpunit.cache">
+<!-- PHPUnit 9: the WordPress test library does not run on PHPUnit 10 (C-056.4). -->
+<!-- Strict, because a test that asserts nothing is the vacuity C-069 exists to remove: a risky or
+     warned test fails the suite, and so fails the gate. -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="tests/php/bootstrap.php" backupGlobals="false" colors="true" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" cacheResultFile=".phpunit.cache/test-results" beStrictAboutTestsThatDoNotTestAnything="true" failOnRisky="true" failOnWarning="true" convertDeprecationsToExceptions="true">
 	<testsuites>
 		<testsuite name="Vscm WooRelatedProducts">
 			<directory prefix="Test" suffix=".php">./tests/php/tests</directory>
 		</testsuite>
 	</testsuites>
-	<source>
+	<coverage>
 		<include>
 			<directory suffix=".php">./src</directory>
 		</include>
-	</source>
+	</coverage>
 </phpunit>

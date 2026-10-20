@@ -382,18 +382,20 @@ class CrossSellingRelatedProducts implements InitableInterface {
 	 * @return int[]
 	 */
 	public function taxonomy_related( int $product_id, int $limit, array $excluded_ids ): array {
-		$categories      = get_the_terms( $product_id, 'product_cat' );
-		$product_brands  = get_the_terms( $product_id, 'product_brand' );
-		$exclude_tt_ids  = $this->exclude_visibility_tt_ids();
+		$categories     = get_the_terms( $product_id, 'product_cat' );
+		$product_brands = get_the_terms( $product_id, 'product_brand' );
+		$exclude_tt_ids = $this->exclude_visibility_tt_ids();
+		// The excluded products are removed here rather than with post__not_in, which Plugin Check
+		// flags as a slow query (C-067). Fetching that many more keeps $limit picks after the cut.
+		$excluded_ids    = array_values( array_unique( array_map( 'intval', $excluded_ids ) ) );
 		$base_query_args = array(
 			'fields'                 => 'ids',
 			'post_type'              => 'product',
-			'posts_per_page'         => $limit,
+			'posts_per_page'         => $limit + count( $excluded_ids ),
 			'no_found_rows'          => true,
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 			'post_status'            => 'publish',
-			'post__not_in'           => $excluded_ids,
 			// Ties are the norm in imported catalogues; without an explicit tie-breaker the order
 			// is unspecified and a shopper's related block can reorder for no reason.
 			'orderby'                => array(
@@ -433,9 +435,9 @@ class CrossSellingRelatedProducts implements InitableInterface {
 					'tax_query' => $brand_tax_query,
 				)
 			);
-			$brand_results    = get_posts( $brand_query_args );
+			$brand_results    = $this->without( get_posts( $brand_query_args ), $excluded_ids, $limit );
 			if ( ! empty( $brand_results ) ) {
-				return array_map( 'intval', $brand_results );
+				return $brand_results;
 			}
 		}
 
@@ -466,14 +468,26 @@ class CrossSellingRelatedProducts implements InitableInterface {
 						'tax_query' => $category_tax_query,
 					)
 				);
-				$category_results    = get_posts( $category_query_args );
+				$category_results    = $this->without( get_posts( $category_query_args ), $excluded_ids, $limit );
 				if ( ! empty( $category_results ) ) {
-					return array_map( 'intval', $category_results );
+					return $category_results;
 				}
 			}
 		}
 
 		return array();
+	}
+
+	/**
+	 * Query results without the excluded products, in their order, at most $limit.
+	 *
+	 * @param array<int|string> $ids          Post IDs from get_posts().
+	 * @param int[]             $excluded_ids Excluded IDs.
+	 * @param int               $limit        Max results.
+	 * @return int[]
+	 */
+	private function without( array $ids, array $excluded_ids, int $limit ): array {
+		return array_slice( array_values( array_diff( array_map( 'intval', $ids ), $excluded_ids ) ), 0, $limit );
 	}
 
 	/**

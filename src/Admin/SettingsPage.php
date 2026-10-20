@@ -37,12 +37,21 @@ class SettingsPage implements InitableInterface {
 	private Settings $settings;
 
 	/**
+	 * The "Suggestions" section (C-063), or null when the suggestion core is not built.
+	 *
+	 * @var ConnectionPanel|null
+	 */
+	private ?ConnectionPanel $panel;
+
+	/**
 	 * Build.
 	 *
-	 * @param Settings $settings Settings repository.
+	 * @param Settings             $settings Settings repository.
+	 * @param ConnectionPanel|null $panel    The "Suggestions" section, if built.
 	 */
-	public function __construct( Settings $settings ) {
+	public function __construct( Settings $settings, ?ConnectionPanel $panel = null ) {
 		$this->settings = $settings;
+		$this->panel    = $panel;
 	}
 
 	/**
@@ -100,6 +109,13 @@ class SettingsPage implements InitableInterface {
 						</td>
 					</tr>
 					<tr>
+						<th scope="row"><label for="vscm-serviceEnabled"><?php esc_html_e( 'Use suggestions', 'kiss-kiss-related-products' ); ?></label></th>
+						<td>
+							<input type="checkbox" id="vscm-serviceEnabled" name="serviceEnabled" value="1" <?php checked( ! empty( $values['serviceEnabled'] ) ); ?> />
+							<span class="description"><?php esc_html_e( 'Once connected, show the suggestion service\'s picks for the products it has seen. Off shows the brand and category picks only.', 'kiss-kiss-related-products' ); ?></span>
+						</td>
+					</tr>
+					<tr>
 						<th scope="row"><label for="vscm-customCssClass"><?php esc_html_e( 'Custom CSS class', 'kiss-kiss-related-products' ); ?></label></th>
 						<td>
 							<input type="text" class="regular-text" id="vscm-customCssClass" name="customCssClass" value="<?php echo esc_attr( (string) $values['customCssClass'] ); ?>" />
@@ -109,6 +125,11 @@ class SettingsPage implements InitableInterface {
 				</table>
 				<?php submit_button(); ?>
 			</form>
+			<?php
+			if ( null !== $this->panel ) {
+				$this->panel->render();
+			}
+			?>
 		</div>
 		<?php
 	}
@@ -132,6 +153,7 @@ class SettingsPage implements InitableInterface {
 			array(
 				'customCssClass' => $css,
 				'enableFeature'  => isset( $_POST['enableFeature'] ),
+				'serviceEnabled' => isset( $_POST['serviceEnabled'] ),
 			)
 		);
 		// phpcs:enable WordPress.Security.NonceVerification.Missing

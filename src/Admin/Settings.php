@@ -39,6 +39,11 @@ class Settings {
 				'default'  => true,
 				'sanitize' => array( self::class, 'sanitize_boolean' ),
 			),
+			// The merchant's pause of the stored suggestions (C-063 R9): on once connected.
+			'serviceEnabled' => array(
+				'default'  => true,
+				'sanitize' => array( self::class, 'sanitize_boolean' ),
+			),
 		);
 
 		/**
@@ -105,7 +110,7 @@ class Settings {
 
 	/**
 	 * The stored option merged over the defaults, restricted to the registered keys: an option
-	 * written by an older version (aiProvider/aiModel), or by an extension that is no longer
+	 * written by an older version (its provider and model keys), or by an extension that is no longer
 	 * active, must not leak back out.
 	 *
 	 * @return array<string, mixed>
