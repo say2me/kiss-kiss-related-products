@@ -4,7 +4,7 @@ Tags: related products, cross-selling, brands, categories, woocommerce related p
 Requires at least: 6.7
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -59,7 +59,7 @@ Its settings, cached picks, stored suggestions and the shop's connection are rem
 
 == External services ==
 
-This plugin can connect to the suggestion service at vasenin.com, which suggests related products for your products. It is off until a shop manager clicks Connect on the plugin's settings screen and agrees to the terms shown there.
+This plugin can connect to the suggestion service at api.vasenin.com, which suggests related products for your products. It is off until a shop manager clicks Connect on the plugin's settings screen and agrees to the terms shown there.
 
 * When you click Connect: the shop's address, the version of the consent text, and the plugin's name and version. The service then fetches a one-time code from the shop's own address to confirm it.
 * For each product it suggests for, in the background: its name, brand, categories, tags, attributes, price or price band, a description of up to 300 characters and its stock status, and the same for the candidate products. Nothing about your customers or orders.
@@ -75,6 +75,9 @@ Privacy Policy: https://vasenin.com/privacy/
 The settings screen uses the fonts Onest, Unbounded and JetBrains Mono, shipped with the plugin in assets/fonts/ under the SIL Open Font License, Version 1.1 (assets/fonts/OFL.txt). The plugin loads no font from another site.
 
 == Changelog ==
+
+= 1.0.1 =
+* Connect on the settings screen now reaches the suggestion service, so a connected shop gets suggested related products with a short reason, 100 a month on the free plan.
 
 = 1.0.0 =
 * A new look for the settings screen, light and dark, with its fonts shipped in the plugin.

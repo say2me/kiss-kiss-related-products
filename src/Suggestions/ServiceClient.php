@@ -22,11 +22,11 @@ class ServiceClient {
 	private const DEFAULT_TIMEOUT = 60;
 
 	/**
-	 * The production service's address: the one place it is set (C-058). Empty until there is a
-	 * production service; any other service (the development stack, a test server) is set through the
-	 * vscm_related_service filter, never in wp-config.php (C-cd2aa97).
+	 * The production service's address: the one place it is set (C-b25b463). Any other service (the
+	 * development stack, a test server) is set through the vscm_related_service filter, never in
+	 * wp-config.php (C-cd2aa97).
 	 */
-	public const DEFAULT_URL = '';
+	public const DEFAULT_URL = 'https://api.vasenin.com';
 
 	/**
 	 * The plugin's slug, sent on connect.
