@@ -50,6 +50,17 @@ class LastRun {
 	}
 
 	/**
+	 * When the last attempt was recorded (ISO 8601, UTC), or null; reads no product (C-0493ee8 R4).
+	 *
+	 * @return string|null
+	 */
+	public function at(): ?string {
+		$data = get_option( self::OPTION );
+
+		return is_array( $data ) && isset( $data['at'] ) ? (string) $data['at'] : null;
+	}
+
+	/**
 	 * The last recorded attempt, with the product's current title, or null if none yet.
 	 *
 	 * @return array<string, mixed>|null

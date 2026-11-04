@@ -1,0 +1,603 @@
+/*
+ * Kiss Kiss admin components (C-ce3b88a R3, R6, R10–R13): the plugin's settings page, and the pages of any extension
+ * that enqueues the handle.
+ * Every value comes from tokens.css; every rule sits under .kk, so nothing reaches another admin screen.
+ */
+
+/* Text styles */
+.kk,
+.kk .kk-text-body {
+	font-family: var(--kk-text-body-font);
+	font-size: var(--kk-text-body-size);
+	font-weight: var(--kk-text-body-weight);
+	line-height: var(--kk-text-body-line);
+	color: var(--kk-ink);
+}
+
+.kk .kk-text-title,
+.kk .kk-title {
+	margin: 0;
+	padding: 0;
+	font-family: var(--kk-text-title-font);
+	font-size: var(--kk-text-title-size);
+	font-weight: var(--kk-text-title-weight);
+	line-height: var(--kk-text-title-line);
+	letter-spacing: var(--kk-text-title-tracking);
+	color: var(--kk-ink);
+}
+
+.kk .kk-text-heading,
+.kk .kk-section-title,
+.kk .kk-row__title {
+	margin: 0;
+	padding: 0;
+	font-family: var(--kk-text-heading-font);
+	font-size: var(--kk-text-heading-size);
+	font-weight: var(--kk-text-heading-weight);
+	line-height: var(--kk-text-heading-line);
+	color: var(--kk-ink);
+}
+
+.kk .kk-text-small {
+	font-family: var(--kk-text-small-font);
+	font-size: var(--kk-text-small-size);
+	font-weight: var(--kk-text-small-weight);
+	line-height: var(--kk-text-small-line);
+}
+
+.kk .kk-text-strong {
+	font-family: var(--kk-text-body-strong-font);
+	font-size: var(--kk-text-body-strong-size);
+	font-weight: var(--kk-text-body-strong-weight);
+	line-height: var(--kk-text-body-strong-line);
+}
+
+.kk code,
+.kk .kk-text-code {
+	padding: 0;
+	background: none;
+	font-family: var(--kk-text-code-font);
+	font-size: var(--kk-text-code-size);
+	line-height: var(--kk-text-code-line);
+}
+
+.kk p {
+	margin: 0;
+	font-size: inherit;
+	line-height: inherit;
+}
+
+/* The page: the cookbook's surface, 24px between its blocks */
+.kk-page {
+	display: grid;
+	gap: var(--kk-space-6);
+	max-width: 56rem;
+	margin-block: var(--kk-space-4);
+	padding: var(--kk-space-8);
+	border-radius: var(--kk-radius-cards);
+	background: var(--kk-surface);
+	box-sizing: border-box;
+}
+
+.kk-page + .kk-page {
+	margin-top: var(--kk-space-8);
+}
+
+.kk-heading {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--kk-space-3);
+}
+
+.kk .kk-intro,
+.kk .kk-muted {
+	color: var(--kk-ink-muted);
+}
+
+.kk .kk-note {
+	font-family: var(--kk-text-small-font);
+	font-size: var(--kk-text-small-size);
+	line-height: var(--kk-text-small-line);
+	color: var(--kk-ink-muted);
+}
+
+/* A stack of cards and blocks, 24px apart */
+.kk-stack {
+	display: grid;
+	gap: var(--kk-space-6);
+	min-width: 0;
+}
+
+/* Card */
+.kk-card {
+	display: grid;
+	gap: var(--kk-space-6);
+	min-width: 0;
+	padding: var(--kk-space-6);
+	border: 1px solid var(--kk-line);
+	border-radius: var(--kk-radius-cards);
+	background: var(--kk-surface-raised);
+}
+
+.kk-card__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--kk-space-3);
+}
+
+/* A setting: label and help on the left, the control on the right; stacked below WordPress's 782px */
+.kk-row {
+	display: grid;
+	grid-template-columns: minmax(0, 25rem) minmax(0, 1fr);
+	gap: var(--kk-space-6);
+	align-items: start;
+}
+
+.kk-row__help {
+	margin-top: var(--kk-space-2);
+	font-family: var(--kk-text-small-font);
+	font-size: var(--kk-text-small-size);
+	line-height: var(--kk-text-small-line);
+	color: var(--kk-ink-muted);
+}
+
+@media (max-width: 782px) {
+	.kk-page {
+		padding: var(--kk-space-4);
+	}
+
+	.kk-row {
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--kk-space-3);
+	}
+}
+
+/* TextField */
+.kk-field {
+	display: grid;
+	gap: var(--kk-space-2);
+	max-width: 20rem;
+}
+
+.kk-field__label {
+	font-family: var(--kk-text-button-font);
+	font-size: var(--kk-text-button-size);
+	font-weight: var(--kk-text-button-weight);
+	line-height: var(--kk-text-button-line);
+	color: var(--kk-ink);
+}
+
+.kk input.kk-input {
+	width: 100%;
+	min-height: calc(var(--kk-space-8) + var(--kk-space-2));
+	margin: 0;
+	padding: 0 var(--kk-space-3);
+	border: 1px solid var(--kk-line-strong);
+	border-radius: var(--kk-radius-controls);
+	background: var(--kk-surface-raised);
+	box-shadow: none;
+	font-family: var(--kk-text-body-font);
+	font-size: var(--kk-text-body-size);
+	line-height: var(--kk-text-body-line);
+	color: var(--kk-ink);
+}
+
+.kk input.kk-input:hover {
+	border-color: var(--kk-ink);
+}
+
+.kk input.kk-input[aria-invalid="true"] {
+	border-color: var(--kk-danger);
+}
+
+.kk-field__hint {
+	font-family: var(--kk-text-small-font);
+	font-size: var(--kk-text-small-size);
+	line-height: var(--kk-text-small-line);
+	color: var(--kk-ink-muted);
+}
+
+.kk-field__hint--error {
+	color: var(--kk-danger);
+}
+
+/* Switch: a checkbox with role="switch", drawn as the track and thumb */
+.kk-switch {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--kk-space-3);
+	cursor: pointer;
+}
+
+.kk input.kk-switch__input[type="checkbox"] {
+	position: relative;
+	flex: none;
+	width: calc(var(--kk-space-8) + var(--kk-space-2));
+	height: var(--kk-space-6);
+	margin: 0;
+	border: 1px solid var(--kk-line-strong);
+	border-radius: var(--kk-space-6);
+	background: var(--kk-surface-sunken);
+	box-shadow: none;
+	appearance: none;
+	cursor: pointer;
+}
+
+.kk input.kk-switch__input[type="checkbox"]::before {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: var(--kk-space-1);
+	width: var(--kk-space-4);
+	height: var(--kk-space-4);
+	margin: 0;
+	border-radius: 50%;
+	background: var(--kk-ink-muted);
+	transform: translateY(-50%);
+	transition: transform 0.15s ease;
+}
+
+.kk input.kk-switch__input[type="checkbox"]:checked {
+	border-color: var(--kk-kiss);
+	background: var(--kk-kiss);
+}
+
+.kk input.kk-switch__input[type="checkbox"]:checked::before {
+	background: var(--kk-on-kiss);
+	transform: translate(var(--kk-space-4), -50%);
+}
+
+.kk input.kk-switch__input[type="checkbox"]:disabled,
+.kk input.kk-switch__input[type="checkbox"]:disabled + .kk-switch__label {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* Button: primary, secondary, ghost, danger */
+.kk .kk-button,
+.kk a.kk-button,
+.kk button.kk-button,
+.kk input.kk-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: calc(var(--kk-space-8) + var(--kk-space-2));
+	margin: 0;
+	padding: 0 var(--kk-space-4);
+	border: 1px solid transparent;
+	border-radius: var(--kk-radius-controls);
+	background: var(--kk-kiss);
+	box-shadow: none;
+	font-family: var(--kk-text-button-font);
+	font-size: var(--kk-text-button-size);
+	font-weight: var(--kk-text-button-weight);
+	line-height: var(--kk-text-button-line);
+	color: var(--kk-on-kiss);
+	text-decoration: none;
+	text-shadow: none;
+	cursor: pointer;
+}
+
+.kk .kk-button:hover,
+.kk .kk-button:focus {
+	border-color: transparent;
+	background: var(--kk-kiss-hover);
+	color: var(--kk-on-kiss);
+}
+
+.kk .kk-button.kk-button--secondary,
+.kk .kk-button.kk-button--secondary:focus {
+	border-color: var(--kk-line-strong);
+	background: var(--kk-surface-raised);
+	color: var(--kk-ink);
+}
+
+.kk .kk-button.kk-button--secondary:hover {
+	border-color: var(--kk-ink);
+	background: var(--kk-surface-raised);
+	color: var(--kk-ink);
+}
+
+.kk .kk-button.kk-button--ghost,
+.kk .kk-button.kk-button--ghost:hover,
+.kk .kk-button.kk-button--ghost:focus {
+	padding: 0 var(--kk-space-2);
+	border-color: transparent;
+	background: transparent;
+	color: var(--kk-kiss-ink);
+}
+
+.kk .kk-button.kk-button--ghost:hover {
+	text-decoration: underline;
+}
+
+.kk .kk-button.kk-button--danger,
+.kk .kk-button.kk-button--danger:focus {
+	background: var(--kk-danger);
+	color: var(--kk-on-danger);
+}
+
+.kk .kk-button.kk-button--danger:hover {
+	background: var(--kk-danger);
+	color: var(--kk-on-danger);
+	filter: brightness(0.92);
+}
+
+.kk .kk-button[disabled],
+.kk .kk-button[aria-disabled="true"] {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* Focus: the 2px ring with a 2px offset, on every control */
+.kk .kk-button:focus-visible,
+.kk input.kk-input:focus-visible,
+.kk input.kk-switch__input[type="checkbox"]:focus-visible,
+.kk a:focus-visible,
+.kk button:focus-visible,
+.kk select:focus-visible {
+	outline: calc(var(--kk-space-1) / 2) solid var(--kk-focus);
+	outline-offset: calc(var(--kk-space-1) / 2);
+	box-shadow: none;
+}
+
+.kk-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--kk-space-3);
+}
+
+.kk-actions form {
+	display: contents;
+}
+
+/* Badge: always a word, never colour alone */
+.kk-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: var(--kk-space-1) var(--kk-space-2);
+	border-radius: var(--kk-radius-badges);
+	background: var(--kk-surface-sunken);
+	font-family: var(--kk-text-label-font);
+	font-size: var(--kk-text-label-size);
+	font-weight: var(--kk-text-label-weight);
+	line-height: var(--kk-text-label-line);
+	letter-spacing: var(--kk-text-label-tracking);
+	color: var(--kk-ink);
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.kk-badge--kiss {
+	background: var(--kk-kiss-soft);
+	color: var(--kk-kiss-ink);
+}
+
+.kk-badge--plum {
+	background: var(--kk-plum);
+	color: var(--kk-on-plum);
+}
+
+.kk-badge--success {
+	background: var(--kk-success-soft);
+	color: var(--kk-success-ink);
+}
+
+.kk-badge--warning {
+	background: var(--kk-warning-soft);
+	color: var(--kk-warning);
+}
+
+.kk-badge--danger {
+	background: var(--kk-danger-soft);
+	color: var(--kk-danger);
+}
+
+/* Notice: info, success, warning, error */
+.kk-notice {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: var(--kk-space-3);
+	align-items: start;
+	padding: var(--kk-space-3) var(--kk-space-4);
+	border-radius: var(--kk-radius-controls);
+	background: var(--kk-kiss-soft);
+	color: var(--kk-ink);
+}
+
+.kk-notice::before {
+	content: "";
+	width: calc(var(--kk-space-2) + var(--kk-space-1) / 2);
+	height: calc(var(--kk-space-2) + var(--kk-space-1) / 2);
+	margin-top: calc(var(--kk-space-1) + var(--kk-space-1) / 2);
+	border-radius: 50%;
+	background: var(--kk-kiss);
+}
+
+.kk-notice__body {
+	display: grid;
+	gap: var(--kk-space-1);
+}
+
+.kk-notice__title {
+	font-family: var(--kk-text-body-strong-font);
+	font-size: var(--kk-text-body-strong-size);
+	font-weight: var(--kk-text-body-strong-weight);
+	line-height: var(--kk-text-body-strong-line);
+}
+
+.kk-notice__text {
+	font-family: var(--kk-text-small-font);
+	font-size: var(--kk-text-small-size);
+	line-height: var(--kk-text-small-line);
+}
+
+.kk-notice--success {
+	background: var(--kk-success-soft);
+}
+
+.kk-notice--success::before {
+	background: var(--kk-success);
+}
+
+.kk-notice--warning {
+	background: var(--kk-warning-soft);
+}
+
+.kk-notice--warning::before {
+	background: var(--kk-warning);
+}
+
+.kk-notice--danger {
+	background: var(--kk-danger-soft);
+}
+
+.kk-notice--danger::before {
+	background: var(--kk-danger);
+}
+
+/* The quota bar */
+.kk-progress {
+	height: var(--kk-space-2);
+	overflow: hidden;
+	border-radius: var(--kk-space-2);
+	background: var(--kk-surface-sunken);
+}
+
+.kk-progress__value {
+	display: block;
+	height: 100%;
+	border-radius: var(--kk-space-1);
+	background: var(--kk-kiss);
+}
+
+/* The Suggestions card's progress (C-0493ee8): a pulsing dot while the work runs, then the lines */
+.kk-working {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--kk-space-2);
+	margin-block: var(--kk-space-3);
+}
+
+.kk-working p {
+	margin: 0;
+}
+
+.kk-working__dot {
+	flex: none;
+	width: var(--kk-space-2);
+	height: var(--kk-space-2);
+	margin-top: 0.4em;
+	border-radius: 50%;
+	background: var(--kk-kiss);
+	animation: kk-working-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes kk-working-pulse {
+	0%,
+	100% {
+		opacity: 0.35;
+		transform: scale(0.8);
+	}
+
+	50% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.kk-working__dot {
+		animation: none;
+	}
+}
+
+/* Facts: the plan, licence and dates, as a two-column table */
+.kk table.kk-facts {
+	justify-self: start;
+	width: auto;
+	margin: 0;
+	border-collapse: collapse;
+}
+
+.kk table.kk-facts th,
+.kk table.kk-facts td {
+	padding: var(--kk-space-1) 0;
+	font-family: var(--kk-text-small-font);
+	font-size: var(--kk-text-small-size);
+	font-weight: var(--kk-text-small-weight);
+	line-height: var(--kk-text-small-line);
+	text-align: left;
+	vertical-align: top;
+}
+
+.kk table.kk-facts th {
+	padding-right: var(--kk-space-6);
+	color: var(--kk-ink-muted);
+	white-space: nowrap;
+}
+
+/* The consent text before Connect */
+.kk-consent {
+	display: grid;
+	gap: var(--kk-space-2);
+	padding: var(--kk-space-4);
+	border-radius: var(--kk-radius-controls);
+	background: var(--kk-surface-sunken);
+}
+
+.kk a {
+	color: var(--kk-kiss-ink);
+}
+
+.kk a:hover {
+	color: var(--kk-kiss);
+}
+
+/* WordPress's own tables and lists inside a card */
+.kk-card table.widefat {
+	border-color: var(--kk-line);
+	border-radius: var(--kk-radius-controls);
+	box-shadow: none;
+}
+
+.kk-card ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.kk-card li {
+	margin: 0;
+}
+
+.kk-card table.kk-form-table {
+	margin: 0;
+}
+
+.kk-card table.kk-form-table th {
+	padding: var(--kk-space-3) var(--kk-space-6) var(--kk-space-3) 0;
+	font-family: var(--kk-text-heading-font);
+	font-size: var(--kk-text-body-strong-size);
+	font-weight: var(--kk-text-heading-weight);
+	line-height: var(--kk-text-body-strong-line);
+	color: var(--kk-ink);
+}
+
+.kk-card table.kk-form-table td {
+	padding: var(--kk-space-3) 0;
+}
+
+.kk-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}

@@ -9,6 +9,7 @@ declare(strict_types = 1);
 
 namespace Vscm\WooRelatedProducts\Woo;
 
+use Vscm\WooRelatedProducts\Admin\Settings;
 use Vscm\WooRelatedProducts\InitableInterface;
 use WC_Cache_Helper;
 use WC_Product;
@@ -131,6 +132,7 @@ class CrossSellingRelatedProducts implements InitableInterface {
 	public function init() {
 		add_filter( 'woocommerce_related_products', array( $this, 'cross_selling_woocommerce_related_products' ), 10, 3 );
 		add_filter( 'woocommerce_product_related_posts_shuffle', array( $this, 'maybe_skip_shuffle' ), 10, 1 );
+		add_filter( 'woocommerce_output_related_products_args', array( $this, 'apply_related_count' ), 19, 1 );
 		add_filter( 'woocommerce_output_related_products_args', array( $this, 'maybe_force_picks_order' ), 20, 1 );
 		add_action( 'woocommerce_delete_product_transients', array( $this, 'invalidate_related_products_cache' ) );
 		add_action( 'set_object_terms', array( $this, 'invalidate_related_products_cache_on_terms' ), 10, 4 );
@@ -151,6 +153,29 @@ class CrossSellingRelatedProducts implements InitableInterface {
 			return false;
 		}
 		return $should_shuffle;
+	}
+
+	/**
+	 * The merchant's related-products count (C-ce3b88a R7) as WooCommerce's posts_per_page, while the plugin's picks
+	 * are on. Runs at 19, before maybe_force_picks_order() reads posts_per_page; the theme keeps its columns.
+	 *
+	 * @param array<string, mixed> $args WooCommerce's related-products arguments.
+	 * @return array<string, mixed>
+	 */
+	public function apply_related_count( array $args ): array {
+		$settings = get_option( 'vscm_woo_related_products_settings' );
+		$settings = is_array( $settings ) ? $settings : array();
+
+		if ( isset( $settings['enableFeature'] ) && ! $settings['enableFeature'] ) {
+			return $args;
+		}
+
+		$count = Settings::sanitize_related_count( $settings['relatedCount'] ?? 4 );
+		if ( null !== $count ) {
+			$args['posts_per_page'] = $count;
+		}
+
+		return $args;
 	}
 
 	/**

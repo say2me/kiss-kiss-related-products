@@ -101,7 +101,46 @@ class Worker implements InitableInterface {
 	 */
 	public function init() {
 		add_action( 'vscm_related_service_queued', array( $this, 'maybe_schedule' ) );
+		add_action( 'vscm_related_service_resumed', array( $this, 'drain_now' ) );
 		add_action( self::HOOK, array( $this, 'handle_drain' ) );
+	}
+
+	/**
+	 * A pause ended early (C-86c4409 R2): the drain waiting for its old end is replaced by one due now.
+	 *
+	 * @return void
+	 */
+	public function drain_now(): void {
+		if ( ! function_exists( 'as_unschedule_all_actions' ) || ! function_exists( 'as_schedule_single_action' ) ) {
+			return;
+		}
+		as_unschedule_all_actions( self::HOOK, array(), self::GROUP );
+		as_schedule_single_action( time(), self::HOOK, array(), self::GROUP );
+	}
+
+	/**
+	 * Schedule a drain at a time unless one is pending already (C-86c4409 R4). Only pending drains count: the drain
+	 * calling this is itself running.
+	 *
+	 * @param int $at When.
+	 * @return void
+	 */
+	private function follow_up( int $at ): void {
+		if ( ! function_exists( 'as_get_scheduled_actions' ) || ! function_exists( 'as_schedule_single_action' ) ) {
+			return;
+		}
+		$pending = as_get_scheduled_actions(
+			array(
+				'hook'     => self::HOOK,
+				'group'    => self::GROUP,
+				'status'   => 'pending',
+				'per_page' => 1,
+			),
+			'ids'
+		);
+		if ( empty( $pending ) ) {
+			as_schedule_single_action( $at, self::HOOK, array(), self::GROUP );
+		}
 	}
 
 	/**
@@ -146,13 +185,13 @@ class Worker implements InitableInterface {
 		if ( 'paused' === $result['stopped'] ) {
 			$pause = $this->connection->pause();
 			if ( null !== $pause && null !== $pause['until'] ) {
-				as_schedule_single_action( max( time(), $pause['until'] ), self::HOOK, array(), self::GROUP );
+				$this->follow_up( max( time(), $pause['until'] ) );
 			}
 			return;
 		}
 
 		if ( $result['remaining'] > 0 ) {
-			as_schedule_single_action( time(), self::HOOK, array(), self::GROUP );
+			$this->follow_up( time() );
 		}
 	}
 

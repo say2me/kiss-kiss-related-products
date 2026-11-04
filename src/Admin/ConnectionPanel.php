@@ -1,7 +1,8 @@
 <?php
 /**
  * The "Suggestions" section of the settings page: consent and connect, the site's status, buy, and why the
- * suggestions are paused (C-063 R1–R3, R6–R8).
+ * suggestions are paused (C-063 R1–R3, R6–R8), as the Kiss Kiss cookbook's connection, quota and service-error
+ * screens (C-ce3b88a R10–R12).
  *
  * @package Vscm\WooRelatedProducts
  */
@@ -12,6 +13,7 @@ namespace Vscm\WooRelatedProducts\Admin;
 
 use Vscm\WooRelatedProducts\InitableInterface;
 use Vscm\WooRelatedProducts\Suggestions\Connection;
+use Vscm\WooRelatedProducts\Suggestions\Progress;
 use Vscm\WooRelatedProducts\Suggestions\ServiceClient;
 use Vscm\WooRelatedProducts\Suggestions\ServiceError;
 use Vscm\WooRelatedProducts\Suggestions\SiteStatus;
@@ -61,14 +63,23 @@ class ConnectionPanel implements InitableInterface {
 	private SiteStatus $status;
 
 	/**
+	 * The suggestions' progress (C-0493ee8).
+	 *
+	 * @var Progress
+	 */
+	private Progress $progress;
+
+	/**
 	 * Build.
 	 *
 	 * @param Connection $connection The connection.
 	 * @param SiteStatus $status     The site's status.
+	 * @param Progress   $progress   The suggestions' progress.
 	 */
-	public function __construct( Connection $connection, SiteStatus $status ) {
+	public function __construct( Connection $connection, SiteStatus $status, Progress $progress ) {
 		$this->connection = $connection;
 		$this->status     = $status;
+		$this->progress   = $progress;
 	}
 
 	/**
@@ -143,28 +154,70 @@ class ConnectionPanel implements InitableInterface {
 	public function handle_refresh(): void {
 		$this->guard( self::REFRESH );
 		$this->status->get( true );
+		// One batch of the waiting products, here and now: the drain the background job runs (Worker::HOOK, named here
+		// in full as Plugin Check asks), bounded by the worker's own limits, so products move even where WP-Cron's
+		// loopback never fires (C-17e0d80).
+		do_action( 'vscm_related_service_drain' );
 		$this->back();
 	}
 
 	/**
-	 * The section.
+	 * The section: a page of its own under the settings, its title and intro, then one card.
 	 *
 	 * @return void
 	 */
 	public function render(): void {
-		echo '<h2 id="vscm-suggestions">' . esc_html__( 'Suggestions', 'kiss-kiss-related-products' ) . '</h2>';
+		echo '<div class="kk-page">';
+		echo '<h2 class="kk-title" id="vscm-suggestions">' . esc_html__( 'Suggestions', 'kiss-kiss-related-products' ) . '</h2>';
+		echo '<p class="kk-intro">' . esc_html__( 'Find products that pair well, even when their categories differ.', 'kiss-kiss-related-products' ) . '</p>';
 		$this->render_notice();
 		$client = new ServiceClient();
 		if ( null === $this->connection->site() && ! $this->connection->linked() ) {
+			$this->card_open( 'NOT CONNECTED', '' );
 			$this->render_consent( $client->is_configured() );
+			echo '</div></div>';
 			return;
 		}
 		$this->render_status();
 		// A copy may become a shop of its own: connecting it creates a new site (R5).
 		if ( $this->connection->is_copy() ) {
-			echo '<h3>' . esc_html__( 'Connect this copy as a shop of its own', 'kiss-kiss-related-products' ) . '</h3>';
+			echo '<div class="kk-card"><h3 class="kk-section-title">' . esc_html__( 'Connect this copy as a shop of its own', 'kiss-kiss-related-products' ) . '</h3>';
 			$this->render_consent( $client->is_configured() );
+			echo '</div>';
 		}
+		echo '</div>';
+	}
+
+	/**
+	 * Open the "Site connection" card with its badge.
+	 *
+	 * @param string $badge The badge's word.
+	 * @param string $tone  The badge's tone: success, warning, danger or '' (neutral).
+	 * @return void
+	 */
+	private function card_open( string $badge, string $tone ): void {
+		echo '<div class="kk-card"><div class="kk-card__head"><h3 class="kk-section-title">' . esc_html__( 'Site connection', 'kiss-kiss-related-products' ) . '</h3>';
+		echo '<span class="kk-badge' . ( '' !== $tone ? ' kk-badge--' . esc_attr( $tone ) : '' ) . '">' . esc_html( $badge ) . '</span></div>';
+	}
+
+	/**
+	 * A Notice; $legacy is the WordPress notice class the C-063 check and older code look for.
+	 *
+	 * @param string $tone   info, success, warning or danger.
+	 * @param string $title  The title.
+	 * @param string $text   The text, if any.
+	 * @param string $legacy notice-success or notice-error, if any.
+	 * @return void
+	 */
+	private function notice( string $tone, string $title, string $text = '', string $legacy = '' ): void {
+		printf(
+			'<div class="kk-notice kk-notice--%1$s%2$s" role="%3$s"><div class="kk-notice__body"><p class="kk-notice__title">%4$s</p>%5$s</div></div>',
+			esc_attr( $tone ),
+			'' !== $legacy ? ' ' . esc_attr( $legacy ) : '',
+			'danger' === $tone ? 'alert' : 'status',
+			esc_html( $title ),
+			'' !== $text ? '<p class="kk-notice__text">' . esc_html( $text ) . '</p>' : ''
+		);
 	}
 
 	/**
@@ -175,32 +228,31 @@ class ConnectionPanel implements InitableInterface {
 	 */
 	private function render_consent( bool $configured ): void {
 		echo '<p>' . esc_html__( 'Connect this shop to the suggestion service to get suggested related products, with a short reason, for your best sellers. The free plan includes 100 suggestions a month.', 'kiss-kiss-related-products' ) . '</p>';
-		echo '<div class="vscm-consent"><p><strong>' . esc_html(
+		echo '<div class="vscm-consent kk-consent"><p class="kk-text-strong">' . esc_html(
 			sprintf(
 				/* translators: %s: version number of the consent text */
 				__( 'What is sent (version %s)', 'kiss-kiss-related-products' ),
 				Connection::CONSENT_VERSION
 			)
-		) . '</strong></p><p>' . esc_html__( 'For each product: its name, brand, categories, tags, attributes, price or price band, a description of up to 300 characters and its stock status. Nothing about your customers or orders. The service runs in the EU and keeps no product data.', 'kiss-kiss-related-products' ) . '</p><p>';
+		) . '</p><p class="kk-muted">' . esc_html__( 'For each product: its name, brand, categories, tags, attributes, price or price band, a description of up to 300 characters and its stock status. Nothing about your customers or orders. The service runs in the EU and keeps no product data.', 'kiss-kiss-related-products' ) . '</p><p class="kk-muted">';
 		printf(
 			/* translators: 1: Terms of Use link, 2: Privacy Policy link */
 			esc_html__( 'By connecting you agree to the %1$s and the %2$s.', 'kiss-kiss-related-products' ),
 			'<a href="' . esc_url( self::sales_url( self::TERMS_PATH ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'Terms of Use', 'kiss-kiss-related-products' ) . '</a>',
 			'<a href="' . esc_url( self::sales_url( self::PRIVACY_PATH ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'Privacy Policy', 'kiss-kiss-related-products' ) . '</a>'
 		);
-		echo '</p></div>';
+		echo '</p></div><div class="kk-actions">';
 		$this->open_form( 'vscm-connect-form', self::CONNECT );
-		if ( $configured ) {
-			submit_button( __( 'Connect', 'kiss-kiss-related-products' ), 'primary', 'submit', false );
-		} else {
-			submit_button( __( 'Connect', 'kiss-kiss-related-products' ), 'primary', 'submit', false, array( 'disabled' => 'disabled' ) );
-			echo ' <span class="description">' . esc_html__( 'The suggestion service is not available yet.', 'kiss-kiss-related-products' ) . '</span>';
-		}
+		$this->submit( __( 'Connect', 'kiss-kiss-related-products' ), '', ! $configured );
 		echo '</form>';
+		if ( ! $configured ) {
+			echo '<span class="kk-note">' . esc_html__( 'The suggestion service is not available yet.', 'kiss-kiss-related-products' ) . '</span>';
+		}
+		echo '</div>';
 	}
 
 	/**
-	 * The status, the pause and the actions (R6–R8).
+	 * The card: the badge, the host, the count over its bar, the notices, the facts and the actions (R6–R8).
 	 *
 	 * @return void
 	 */
@@ -212,6 +264,11 @@ class ConnectionPanel implements InitableInterface {
 		$rows     = array();
 
 		$reason = $this->pause_reason();
+		$left   = null !== $related ? $related['limit'] - $related['used'] : null;
+		// Spent is the service's word: it gives resume_at only when nothing is left; a purchased plan that used its month
+		// can still pick from its catalogue refresh allowance (C-86c4409 R6).
+		$spent = null !== $related && null !== $related['resume_at'];
+		$down  = null === $related && $this->status->unreachable();
 		$rows[ __( 'Status', 'kiss-kiss-related-products' ) ] = $reason ?? __( 'On', 'kiss-kiss-related-products' );
 		if ( null !== $related ) {
 			$rows[ __( 'Plan', 'kiss-kiss-related-products' ) ] = 'free' === $related['tier'] ? __( 'Free plan', 'kiss-kiss-related-products' ) : __( 'Purchased plan', 'kiss-kiss-related-products' );
@@ -230,13 +287,87 @@ class ConnectionPanel implements InitableInterface {
 			if ( null !== $related['resume_at'] ) {
 				$rows[ __( 'Resumes on', 'kiss-kiss-related-products' ) ] = $this->date( $related['resume_at'] );
 			}
+			if ( 'free' !== $related['tier'] && $related['rebuild_limit'] > 0 ) {
+				$rows[ __( 'Catalogue refresh', 'kiss-kiss-related-products' ) ] = sprintf(
+					/* translators: 1: refresh suggestions used, 2: the refresh allowance, 3: the date the allowance ends */
+					__( '%1$d of %2$d, until %3$s', 'kiss-kiss-related-products' ),
+					$related['rebuild_used'],
+					$related['rebuild_limit'],
+					null !== $related['rebuild_ends_at'] ? $this->date( $related['rebuild_ends_at'] ) : ''
+				);
+			}
 		}
 
-		echo '<table class="form-table" id="vscm-status" role="presentation">';
+		if ( null !== $reason || $spent ) {
+			$this->card_open( __( 'PAUSED', 'kiss-kiss-related-products' ), 'warning' );
+		} elseif ( $down ) {
+			$this->card_open( __( 'NO ANSWER', 'kiss-kiss-related-products' ), 'danger' );
+		} else {
+			$this->card_open( __( 'CONNECTED', 'kiss-kiss-related-products' ), 'success' );
+		}
+		echo '<p class="kk-muted">' . esc_html(
+			sprintf(
+				/* translators: %s: the shop's host name */
+				__( '%s is connected.', 'kiss-kiss-related-products' ),
+				(string) wp_parse_url( home_url(), PHP_URL_HOST )
+			)
+		) . '</p>';
+
+		if ( $down ) {
+			$this->notice( 'danger', __( 'Suggestions couldn\'t update', 'kiss-kiss-related-products' ), __( 'We kept your current picks. Check your connection, then try again.', 'kiss-kiss-related-products' ), 'notice-error' );
+		}
+		if ( null !== $related && $related['limit'] > 0 ) {
+			$pct = (int) round( 100 * min( $related['used'], $related['limit'] ) / $related['limit'] );
+			// A purchased plan past its month picks from its catalogue refresh: say so, not only a full bar (C-0493ee8 R7).
+			$refresh = $left <= 0 && ! $spent && $related['rebuild_limit'] > 0;
+			echo '<p class="kk-text-strong">' . esc_html(
+				$refresh
+					? sprintf(
+						/* translators: 1: refresh suggestions used, 2: the refresh allowance */
+						__( 'This month\'s suggestions are used. New ones come from your catalogue refresh: %1$d of %2$d.', 'kiss-kiss-related-products' ),
+						$related['rebuild_used'],
+						$related['rebuild_limit']
+					)
+					: sprintf(
+						/* translators: 1: suggestions used this month, 2: the month's allowance */
+						__( '%1$d of %2$d suggestions used', 'kiss-kiss-related-products' ),
+						$related['used'],
+						$related['limit']
+					)
+			) . '</p>';
+			printf(
+				'<div class="kk-progress" role="progressbar" aria-label="%1$s" aria-valuemin="0" aria-valuemax="%2$d" aria-valuenow="%3$d"><span class="kk-progress__value" style="width:%4$d%%"></span></div>',
+				esc_attr__( 'Suggestions used this month', 'kiss-kiss-related-products' ),
+				(int) $related['limit'],
+				(int) min( $related['used'], $related['limit'] ),
+				(int) $pct
+			);
+			// The low notice from 20% left down to one (C-ce3b88a R11); none left is the paused state.
+			if ( $left > 0 && $left * 5 <= $related['limit'] ) {
+				$this->notice(
+					'warning',
+					__( 'Suggestions are running low', 'kiss-kiss-related-products' ),
+					sprintf(
+						/* translators: %d: suggestions left this month */
+						_n( 'You have %d suggestion left. Your current picks stay in place.', 'You have %d suggestions left. Your current picks stay in place.', $left, 'kiss-kiss-related-products' ),
+						(int) $left
+					)
+				);
+			} elseif ( $spent && null === $reason ) {
+				$this->notice( 'warning', __( 'This month\'s suggestions are used up. Your current picks stay in place.', 'kiss-kiss-related-products' ) );
+			}
+		}
+		if ( null !== $reason ) {
+			$this->notice( 'warning', $reason );
+		}
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- progress_html() escapes every value it prints.
+		echo $this->progress_html();
+
+		echo '<table class="kk-facts" id="vscm-status" role="presentation">';
 		foreach ( $rows as $label => $value ) {
 			echo '<tr><th scope="row">' . esc_html( $label ) . '</th><td>' . esc_html( $value ) . '</td></tr>';
 		}
-		echo '</table><p>';
+		echo '</table><div class="kk-actions">';
 		// A copy buys nothing: the site id is the shop's, not the copy's (R5).
 		if ( null !== $site && ! $this->connection->is_copy() ) {
 			$return = add_query_arg( 'vscm-bought', '1', admin_url( 'admin.php?page=' . SettingsPage::SLUG ) );
@@ -248,20 +379,90 @@ class ConnectionPanel implements InitableInterface {
 				),
 				self::sales_url( self::BUY_PATH )
 			);
-			echo '<a class="button button-primary" id="vscm-buy" href="' . esc_url( $buy ) . '" target="_blank" rel="noopener">' . esc_html__( 'Buy more suggestions', 'kiss-kiss-related-products' ) . '</a> ';
+			// One primary action per state: during an outage it is Try again.
+			echo '<a class="kk-button' . ( $down ? ' kk-button--secondary' : '' ) . '" id="vscm-buy" href="' . esc_url( $buy ) . '" target="_blank" rel="noopener">' . esc_html__( 'Get more suggestions', 'kiss-kiss-related-products' ) . '</a>';
 			if ( null !== $related && 'free' !== $related['tier'] ) {
-				echo '<a class="button" href="' . esc_url( self::sales_url( self::CABINET_PATH ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'Your licence', 'kiss-kiss-related-products' ) . '</a> ';
+				echo '<a class="kk-button kk-button--secondary" href="' . esc_url( self::sales_url( self::CABINET_PATH ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'Your licence', 'kiss-kiss-related-products' ) . '</a>';
 			}
 		}
-		echo '</p>';
 		$this->open_form( 'vscm-refresh-form', self::REFRESH );
-		submit_button( __( 'Refresh', 'kiss-kiss-related-products' ), 'secondary', 'submit', false );
+		$this->submit( $down ? __( 'Try again', 'kiss-kiss-related-products' ) : __( 'Refresh', 'kiss-kiss-related-products' ), $down ? '' : 'secondary' );
 		echo '</form>';
 		if ( null !== $site ) {
 			$this->open_form( 'vscm-disconnect-form', self::DISCONNECT );
-			submit_button( __( 'Disconnect', 'kiss-kiss-related-products' ), 'delete', 'submit', false );
+			$this->submit( __( 'Disconnect site', 'kiss-kiss-related-products' ), 'secondary' );
 			echo '</form>';
 		}
+		echo '</div></div>';
+	}
+
+	/**
+	 * The progress block (C-0493ee8 R2): the same HTML on the page and from the progress route, so an update reads as
+	 * the first paint. `working` carries the moving indicator; `paused` and `done` do not.
+	 *
+	 * @param array<string, mixed>|null $p A progress already read (the route's), so one answer reads it once (R4).
+	 * @return string
+	 */
+	public function progress_html( ?array $p = null ): string {
+		$p     = $p ?? $this->progress->read();
+		$lines = array();
+		if ( 'working' === $p['state'] ) {
+			$lines[] = sprintf(
+				/* translators: 1: products that have suggestions, 2: products waiting */
+				__( 'Making suggestions: %1$s products have suggestions, %2$s waiting.', 'kiss-kiss-related-products' ),
+				number_format_i18n( $p['done'] ),
+				number_format_i18n( $p['waiting'] )
+			);
+		} elseif ( 'paused' === $p['state'] ) {
+			$lines[] = sprintf(
+				/* translators: %s: products waiting */
+				_n( '%s product is waiting.', '%s products are waiting.', $p['waiting'], 'kiss-kiss-related-products' ),
+				number_format_i18n( $p['waiting'] )
+			);
+		} elseif ( null !== $p['last_at'] ) {
+			$lines[] = sprintf(
+				/* translators: %s: date and time */
+				__( 'Suggestions are up to date. The last one was made on %s.', 'kiss-kiss-related-products' ),
+				$this->date( $p['last_at'] )
+			);
+		} else {
+			$lines[] = __( 'No suggestions made yet.', 'kiss-kiss-related-products' );
+		}
+		if ( $p['failed'] > 0 ) {
+			$lines[] = sprintf(
+				/* translators: %s: products that could not get suggestions */
+				_n( '%s product could not get suggestions.', '%s products could not get suggestions.', $p['failed'], 'kiss-kiss-related-products' ),
+				number_format_i18n( $p['failed'] )
+			);
+		}
+
+		$html = '<div class="kk-working" id="vscm-progress" data-state="' . esc_attr( $p['state'] ) . '" aria-live="polite">';
+		if ( 'working' === $p['state'] ) {
+			$html .= '<span class="kk-working__dot" aria-hidden="true"></span>';
+		}
+		$html .= '<div class="kk-working__text">';
+		foreach ( $lines as $line ) {
+			$html .= '<p>' . esc_html( $line ) . '</p>';
+		}
+
+		return $html . '</div></div>';
+	}
+
+	/**
+	 * A submit button in the system's style.
+	 *
+	 * @param string $label    Its label, a verb.
+	 * @param string $variant  '' (primary), secondary, ghost or danger.
+	 * @param bool   $disabled Whether it is disabled.
+	 * @return void
+	 */
+	private function submit( string $label, string $variant = '', bool $disabled = false ): void {
+		printf(
+			'<input type="submit" class="kk-button%1$s" value="%2$s"%3$s />',
+			'' !== $variant ? ' kk-button--' . esc_attr( $variant ) : '',
+			esc_attr( $label ),
+			$disabled ? ' disabled="disabled"' : ''
+		);
 	}
 
 	/**
@@ -309,7 +510,8 @@ class ConnectionPanel implements InitableInterface {
 			return;
 		}
 		delete_transient( $key );
-		printf( '<div class="notice %1$s inline"><p>%2$s</p></div>', ! empty( $notice['ok'] ) ? 'notice-success' : 'notice-error', esc_html( (string) $notice['text'] ) );
+		$ok = ! empty( $notice['ok'] );
+		$this->notice( $ok ? 'success' : 'danger', (string) $notice['text'], '', $ok ? 'notice-success' : 'notice-error' );
 	}
 
 	/**
@@ -363,7 +565,7 @@ class ConnectionPanel implements InitableInterface {
 	 * @return void
 	 */
 	private function open_form( string $id, string $action ): void {
-		echo '<form id="' . esc_attr( $id ) . '" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline-block;margin-right:8px">';
+		echo '<form id="' . esc_attr( $id ) . '" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 		echo '<input type="hidden" name="action" value="' . esc_attr( $action ) . '" />';
 		wp_nonce_field( $action );
 	}

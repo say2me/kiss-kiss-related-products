@@ -44,6 +44,11 @@ class Settings {
 				'default'  => true,
 				'sanitize' => array( self::class, 'sanitize_boolean' ),
 			),
+			// How many related products a product page shows (C-ce3b88a R7).
+			'relatedCount'   => array(
+				'default'  => 4,
+				'sanitize' => array( self::class, 'sanitize_related_count' ),
+			),
 		);
 
 		/**
@@ -109,6 +114,42 @@ class Settings {
 	}
 
 	/**
+	 * Sanitiser: the related-products count, 1 to 12. Anything else is refused (null), not clamped: the merchant typed
+	 * a number the screen does not allow, and saving a different one would hide that.
+	 *
+	 * @param mixed $value Raw value.
+	 * @return int|null
+	 */
+	public static function sanitize_related_count( $value ): ?int {
+		if ( is_int( $value ) ) {
+			$count = $value;
+		} elseif ( is_string( $value ) && 1 === preg_match( '/^\s*(\d{1,2})\s*$/', $value, $match ) ) {
+			$count = (int) $match[1];
+		} else {
+			return null;
+		}
+
+		return $count >= 1 && $count <= 12 ? $count : null;
+	}
+
+	/**
+	 * The keys of the input that their sanitiser refuses (returns null for).
+	 *
+	 * @param array<string, mixed> $input Raw input.
+	 * @return string[]
+	 */
+	public function invalid( array $input ): array {
+		$out = array();
+		foreach ( $this->fields() as $key => $field ) {
+			if ( isset( $input[ $key ] ) && null === call_user_func( $field['sanitize'], $input[ $key ] ) ) {
+				$out[] = $key;
+			}
+		}
+
+		return $out;
+	}
+
+	/**
 	 * The stored option merged over the defaults, restricted to the registered keys: an option
 	 * written by an older version (its provider and model keys), or by an extension that is no longer
 	 * active, must not leak back out.
@@ -125,7 +166,7 @@ class Settings {
 	}
 
 	/**
-	 * Sanitize registered keys present in the input; unknown keys and absent keys are dropped.
+	 * Sanitize registered keys present in the input; unknown keys, absent keys and refused values are dropped.
 	 *
 	 * @param array<string, mixed> $input Raw input.
 	 * @return array<string, mixed>
@@ -135,7 +176,11 @@ class Settings {
 
 		foreach ( $this->fields() as $key => $field ) {
 			if ( isset( $input[ $key ] ) ) {
-				$out[ $key ] = call_user_func( $field['sanitize'], $input[ $key ] );
+				$value = call_user_func( $field['sanitize'], $input[ $key ] );
+				// A refused value (null) is dropped: the stored one stays.
+				if ( null !== $value ) {
+					$out[ $key ] = $value;
+				}
 			}
 		}
 

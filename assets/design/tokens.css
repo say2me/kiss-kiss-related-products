@@ -1,0 +1,180 @@
+/* Kiss Kiss design tokens (C-ce3b88a). Written by dev/design/tokens.mjs from tokens.json; do not edit. */
+
+@font-face {
+	font-family: 'Unbounded';
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+	src: url('../fonts/Unbounded-600.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Onest';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url('../fonts/Onest-400.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Onest';
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+	src: url('../fonts/Onest-600.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'JetBrains Mono';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url('../fonts/JetBrainsMono-400.woff2') format('woff2');
+}
+
+.kk {
+	--kk-surface: #fcf8f9;
+	--kk-surface-raised: #ffffff;
+	--kk-surface-sunken: #f4edf0;
+	--kk-line: #e6d8de;
+	--kk-line-strong: #9a8691;
+	--kk-ink: #2b1530;
+	--kk-ink-muted: #6e5a66;
+	--kk-kiss: #d6245c;
+	--kk-kiss-hover: #b51a4c;
+	--kk-kiss-soft: #ffe4ec;
+	--kk-on-kiss: #ffffff;
+	--kk-blush: #ffc7d6;
+	--kk-plum: #2b1530;
+	--kk-on-plum: #ffffff;
+	--kk-success: #1e7f5c;
+	--kk-success-soft: #ddf3e9;
+	--kk-warning: #9a5800;
+	--kk-warning-soft: #fdf0d9;
+	--kk-danger: #b42318;
+	--kk-danger-soft: #fde4e1;
+	--kk-on-danger: #ffffff;
+	--kk-focus: #d6245c;
+	--kk-kiss-ink: #b51a4c;
+	--kk-success-ink: #176346;
+	--kk-shadow-card: 0px 1px 2px 0px rgba(43, 21, 48, 0.06), 0px 4px 12px 0px rgba(43, 21, 48, 0.06);
+	--kk-text-display-xl-font: 'Unbounded', 'Onest', system-ui, sans-serif;
+	--kk-text-display-xl-weight: 600;
+	--kk-text-display-xl-size: 48px;
+	--kk-text-display-xl-line: 52px;
+	--kk-text-display-xl-tracking: -0.96px;
+	--kk-text-display-font: 'Unbounded', 'Onest', system-ui, sans-serif;
+	--kk-text-display-weight: 600;
+	--kk-text-display-size: 32px;
+	--kk-text-display-line: 38px;
+	--kk-text-display-tracking: -0.32px;
+	--kk-text-body-font: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--kk-text-body-weight: 400;
+	--kk-text-body-size: 15px;
+	--kk-text-body-line: 24px;
+	--kk-text-body-tracking: 0px;
+	--kk-text-small-font: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--kk-text-small-weight: 400;
+	--kk-text-small-size: 13px;
+	--kk-text-small-line: 20px;
+	--kk-text-small-tracking: 0px;
+	--kk-text-button-font: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--kk-text-button-weight: 600;
+	--kk-text-button-size: 14px;
+	--kk-text-button-line: 20px;
+	--kk-text-button-tracking: 0px;
+	--kk-text-code-font: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+	--kk-text-code-weight: 400;
+	--kk-text-code-size: 13px;
+	--kk-text-code-line: 20px;
+	--kk-text-code-tracking: 0px;
+	--kk-text-heading-font: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--kk-text-heading-weight: 600;
+	--kk-text-heading-size: 17px;
+	--kk-text-heading-line: 24px;
+	--kk-text-heading-tracking: 0px;
+	--kk-text-title-font: 'Unbounded', 'Onest', system-ui, sans-serif;
+	--kk-text-title-weight: 600;
+	--kk-text-title-size: 22px;
+	--kk-text-title-line: 28px;
+	--kk-text-title-tracking: 0px;
+	--kk-text-body-strong-font: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--kk-text-body-strong-weight: 600;
+	--kk-text-body-strong-size: 15px;
+	--kk-text-body-strong-line: 24px;
+	--kk-text-body-strong-tracking: 0px;
+	--kk-text-label-font: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--kk-text-label-weight: 600;
+	--kk-text-label-size: 12px;
+	--kk-text-label-line: 16px;
+	--kk-text-label-tracking: 0.72px;
+	--kk-space-1: 4px;
+	--kk-space-2: 8px;
+	--kk-space-3: 12px;
+	--kk-space-4: 16px;
+	--kk-space-6: 24px;
+	--kk-space-8: 32px;
+	--kk-space-12: 48px;
+	--kk-radius-badges: 6px;
+	--kk-radius-controls: 10px;
+	--kk-radius-cards: 16px;
+}
+
+.kk-dark,
+.kk .kk-dark {
+	--kk-surface: #1a1220;
+	--kk-surface-raised: #241a2b;
+	--kk-surface-sunken: #130d18;
+	--kk-line: #3b2d42;
+	--kk-line-strong: #7d6a86;
+	--kk-ink: #f7eef2;
+	--kk-ink-muted: #bba8b4;
+	--kk-kiss: #ff6b93;
+	--kk-kiss-hover: #ff8fac;
+	--kk-kiss-soft: #4a1a2e;
+	--kk-on-kiss: #1a1220;
+	--kk-blush: #ffc7d6;
+	--kk-plum: #4b2a55;
+	--kk-on-plum: #ffffff;
+	--kk-success: #5fd3a6;
+	--kk-success-soft: #123528;
+	--kk-warning: #f5b544;
+	--kk-warning-soft: #3a2a0c;
+	--kk-danger: #ff8a7a;
+	--kk-danger-soft: #40171a;
+	--kk-on-danger: #1a1220;
+	--kk-focus: #ff6b93;
+	--kk-kiss-ink: #ff6b93;
+	--kk-success-ink: #5fd3a6;
+	--kk-shadow-card: 0px 1px 2px 0px rgba(0, 0, 0, 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+	.kk.kk-auto {
+		--kk-surface: #1a1220;
+		--kk-surface-raised: #241a2b;
+		--kk-surface-sunken: #130d18;
+		--kk-line: #3b2d42;
+		--kk-line-strong: #7d6a86;
+		--kk-ink: #f7eef2;
+		--kk-ink-muted: #bba8b4;
+		--kk-kiss: #ff6b93;
+		--kk-kiss-hover: #ff8fac;
+		--kk-kiss-soft: #4a1a2e;
+		--kk-on-kiss: #1a1220;
+		--kk-blush: #ffc7d6;
+		--kk-plum: #4b2a55;
+		--kk-on-plum: #ffffff;
+		--kk-success: #5fd3a6;
+		--kk-success-soft: #123528;
+		--kk-warning: #f5b544;
+		--kk-warning-soft: #3a2a0c;
+		--kk-danger: #ff8a7a;
+		--kk-danger-soft: #40171a;
+		--kk-on-danger: #1a1220;
+		--kk-focus: #ff6b93;
+		--kk-kiss-ink: #ff6b93;
+		--kk-success-ink: #5fd3a6;
+		--kk-shadow-card: 0px 1px 2px 0px rgba(0, 0, 0, 0.4);
+	}
+}

@@ -35,8 +35,10 @@ delete_option( 'vscm_related_service_calls' );
 delete_option( 'vscm_related_service_paused' );
 delete_option( 'vscm_related_service_job' );
 delete_option( 'vscm_related_service_last_run' );
-// The connected site and its pause (C-063); the cached status and the connect notice are transients, below.
+// The connected site and its pause (C-063), and its last size report (C-9f64aa2); the cached status and the connect
+// notice are transients, below.
 delete_option( 'vscm_related_service_site' );
+delete_option( 'vscm_related_service_size' );
 
 // Unschedule the drain action.
 if ( function_exists( 'as_unschedule_all_actions' ) ) {

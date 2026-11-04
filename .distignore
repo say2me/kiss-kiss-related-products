@@ -28,7 +28,6 @@ jest.config.js
 phpstan.neon
 setup-xdebug.sh
 CLAUDE.md
-assets/js/
 playwright.config.js
 /test-results/
 /playwright-report/

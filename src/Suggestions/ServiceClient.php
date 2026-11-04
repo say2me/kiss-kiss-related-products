@@ -126,6 +126,17 @@ class ServiceClient {
 	}
 
 	/**
+	 * Report the catalogue size (`PATCH /v1/sites/me`, root spec R5.4); the service answers with the status.
+	 *
+	 * @param int $size Published products.
+	 * @return array<string, mixed>
+	 * @throws ServiceError On any failure.
+	 */
+	public function report_size( int $size ): array {
+		return $this->call( 'PATCH', '/v1/sites/me', array( 'catalogue_size' => $size ), true );
+	}
+
+	/**
 	 * Ping the service's health endpoint. Never throws.
 	 *
 	 * @return array{ok: bool, provider: string, model: string, ms: int, error: string}

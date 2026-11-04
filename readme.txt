@@ -4,7 +4,7 @@ Tags: related products, cross-selling, brands, categories, woocommerce related p
 Requires at least: 6.7
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.1.0
+Stable tag: 1.0.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -52,20 +52,36 @@ A copy at another address, or of another environment type, does not use the shop
 
 Its settings, cached picks, stored suggestions and the shop's connection are removed from the database.
 
+== Screenshots ==
+
+1. A product page: the related products the plugin picked, the same brand first, then sibling categories.
+2. The plugin's settings in WooCommerce.
+
 == External services ==
 
 This plugin can connect to the suggestion service at vasenin.com, which suggests related products for your products. It is off until a shop manager clicks Connect on the plugin's settings screen and agrees to the terms shown there.
 
 * When you click Connect: the shop's address, the version of the consent text, and the plugin's name and version. The service then fetches a one-time code from the shop's own address to confirm it.
 * For each product it suggests for, in the background: its name, brand, categories, tags, attributes, price or price band, a description of up to 300 characters and its stock status, and the same for the candidate products. Nothing about your customers or orders.
-* On the settings screen, at most once an hour: the shop's plan and how many suggestions it used this month.
+* On the settings screen, at most once an hour: the shop's plan and how many suggestions it used this month. At most once a day the plugin also sends the number of published products, from which the service sizes the shop's monthly allowance.
 
 Every request carries the shop's own key and address. Disconnect on the settings screen stops all requests. The service keeps no product data after answering.
 
 Terms of Use: https://vasenin.com/terms/
 Privacy Policy: https://vasenin.com/privacy/
 
+== Credits ==
+
+The settings screen uses the fonts Onest, Unbounded and JetBrains Mono, shipped with the plugin in assets/fonts/ under the SIL Open Font License, Version 1.1 (assets/fonts/OFL.txt). The plugin loads no font from another site.
+
 == Changelog ==
+
+= 1.0.0 =
+* A new look for the settings screen, light and dark, with its fonts shipped in the plugin.
+* The suggestions card shows the connection, this month's allowance and any error, and, while suggestions are being made, how many products are done and how many are waiting.
+* Refresh makes the waiting products' suggestions there and then.
+* Suggestions resume as soon as the allowance has room again.
+* Once the shop is connected, the plugin sends the number of its published products at most once a day; see External services.
 
 = 0.1.0 =
 * First release.

@@ -9,6 +9,7 @@ declare(strict_types = 1);
 
 namespace Vscm\WooRelatedProducts\Suggestions;
 
+use Vscm\WooRelatedProducts\Admin\Settings;
 use Vscm\WooRelatedProducts\Container;
 use Vscm\WooRelatedProducts\Plugin;
 use Vscm\WooRelatedProducts\Woo\CrossSellingRelatedProducts;
@@ -100,6 +101,12 @@ final class Services {
 			Worker::class,
 			static function ( Container $c ) {
 				return new Worker( new Queue(), $c->get( Curator::class ), new State(), $c->get( LastRun::class ), $c->get( Connection::class ) );
+			}
+		);
+		$put(
+			Progress::class,
+			static function ( Container $c ) {
+				return new Progress( new Queue(), new Links(), $c->get( LastRun::class ), $c->get( Connection::class ), new Settings() );
 			}
 		);
 		$put(

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Kiss Kiss Related Products
  * Description: Keeps the related products on your product pages relevant, simply and without any external service.
- * Version: 0.1.0
+ * Version: 1.0.0
  * Author: Slava Vasenin
  * Author URI: https://vasenin.com
  * License: GPL-2.0-or-later
@@ -22,7 +22,7 @@ namespace Vscm\WooRelatedProducts;
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'VSCM_WOO_VERSION', '0.1.0' );
+define( 'VSCM_WOO_VERSION', '1.0.0' );
 
 if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 	require_once __DIR__ . '/vendor/autoload.php';
@@ -76,7 +76,9 @@ function plugin(): Plugin {
 		$plugin->add_service( Identity\Challenge::class, new Identity\Challenge() );
 		$plugin->add_service( Rest\VerifyRoute::class, new Rest\VerifyRoute( $container->get( Identity\Challenge::class ) ) );
 		Suggestions\Services::register( $plugin, $container );
-		$plugin->add_service( Admin\ConnectionPanel::class, new Admin\ConnectionPanel( $container->get( Suggestions\Connection::class ), $container->get( Suggestions\SiteStatus::class ) ) );
+		$plugin->add_service( Admin\ConnectionPanel::class, new Admin\ConnectionPanel( $container->get( Suggestions\Connection::class ), $container->get( Suggestions\SiteStatus::class ), $container->get( Suggestions\Progress::class ) ) );
+		$plugin->add_service( Rest\ProgressRoute::class, new Rest\ProgressRoute( $container->get( Suggestions\Progress::class ), $container->get( Admin\ConnectionPanel::class ) ) );
+		$plugin->add_service( Admin\Assets::class, new Admin\Assets() );
 		$plugin->add_service( Admin\SettingsPage::class, new Admin\SettingsPage( $container->get( Admin\Settings::class ), $container->get( Admin\ConnectionPanel::class ) ) );
 		/**
 		 * Lets an extension register its own services, once the plugin's are in place and before start.
