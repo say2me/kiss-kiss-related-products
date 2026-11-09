@@ -116,6 +116,12 @@ final class Services {
 			}
 		);
 		$put(
+			CatalogWalk::class,
+			static function ( Container $c ) {
+				return new CatalogWalk( new Queue(), new State(), $c->get( Connection::class ) );
+			}
+		);
+		$put(
 			Frontend::class,
 			static function ( Container $c ) {
 				return new Frontend( $c->get( CrossSellingRelatedProducts::class ), new Links() );

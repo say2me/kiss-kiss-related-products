@@ -1,6 +1,6 @@
 {
 	"name": "kiss-kiss-related-products",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"private": true,
 	"description": "Cross-selling related products based on brands and similar categories.",
 	"main": "kiss-kiss-related-products.php",

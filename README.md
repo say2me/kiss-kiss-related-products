@@ -10,4 +10,4 @@ Install it from the WordPress plugins screen, or copy this directory to `wp-cont
 
 The license is GPL-2.0-or-later.
 
-Plugin version 1.0.1.
+Plugin version 1.0.2.

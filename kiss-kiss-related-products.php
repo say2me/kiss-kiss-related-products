@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Kiss Kiss Related Products
  * Description: Keeps the related products on your product pages relevant, simply and without any external service.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Slava Vasenin
  * Author URI: https://vasenin.com
  * License: GPL-2.0-or-later
@@ -22,7 +22,7 @@ namespace Vscm\WooRelatedProducts;
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'VSCM_WOO_VERSION', '1.0.1' );
+define( 'VSCM_WOO_VERSION', '1.0.2' );
 
 if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 	require_once __DIR__ . '/vendor/autoload.php';

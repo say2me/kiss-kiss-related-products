@@ -100,6 +100,42 @@ class Queue {
 	}
 
 	/**
+	 * Queue the products that are not queued yet, and leave every queued row as it is: its cause, its attempts and
+	 * its back-off (the catalogue walk, 1.0.2).
+	 *
+	 * @param int[]  $ids   Product IDs.
+	 * @param string $cause Queue cause of the new rows.
+	 * @return int How many rows were added.
+	 */
+	public function add( array $ids, string $cause ): int {
+		global $wpdb;
+
+		$ids = array_values( array_unique( array_map( 'intval', $ids ) ) );
+		if ( empty( $ids ) ) {
+			return 0;
+		}
+
+		$table = $this->table();
+		$now   = gmdate( 'Y-m-d H:i:s' );
+		$added = 0;
+		foreach ( array_chunk( $ids, self::ENQUEUE_CHUNK_SIZE ) as $chunk ) {
+			$rows = implode( ', ', array_fill( 0, count( $chunk ), '(%d, %s, %s, %s, 0, NULL)' ) );
+			$args = array( $table );
+			foreach ( $chunk as $id ) {
+				array_push( $args, $id, $cause, $now, $now );
+			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- as enqueue(): fixed placeholders, four per product.
+			$added += (int) $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO %i (product_id, cause, queued_at, available_at, attempts, last_error) VALUES {$rows}", $args ) );
+		}
+
+		if ( $added > 0 ) {
+			do_action( 'vscm_related_service_queued', $ids, $cause );
+		}
+
+		return $added;
+	}
+
+	/**
 	 * Remove a product's queue row.
 	 *
 	 * @param int $product_id Product ID.

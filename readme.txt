@@ -4,7 +4,7 @@ Tags: related products, cross-selling, brands, categories, woocommerce related p
 Requires at least: 6.7
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,10 @@ Privacy Policy: https://vasenin.com/privacy/
 The settings screen uses the fonts Onest, Unbounded and JetBrains Mono, shipped with the plugin in assets/fonts/ under the SIL Open Font License, Version 1.1 (assets/fonts/OFL.txt). The plugin loads no font from another site.
 
 == Changelog ==
+
+= 1.0.2 =
+* Connecting the shop now queues its published products for suggestions, best sellers first. Until now only products edited after connecting were queued, so a shop could connect and see no suggestions.
+* A shop connected with an earlier version gets its products queued once, the next time its admin is opened.
 
 = 1.0.1 =
 * Connect on the settings screen now reaches the suggestion service, so a connected shop gets suggested related products with a short reason, 100 a month on the free plan.
