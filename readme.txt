@@ -4,7 +4,7 @@ Tags: related products, cross-selling, brands, categories, woocommerce related p
 Requires at least: 6.7
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.2
+Stable tag: 1.1.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,8 +20,10 @@ It works with WooCommerce and requires it: the plugin does nothing on a site whe
 * Products hidden from the catalogue are never offered, and out-of-stock ones follow your store's own stock visibility setting.
 * Results are cached, so product pages stay fast on small hosts.
 * One settings screen, under Related Products in the admin menu: switch the feature on or off and add your own CSS class to the related products block.
+* On a product's edit screen, pin the products you want in its related list and exclude the ones you don't. Once the shop is connected, ask for new suggestions for one product there or from the product list.
 * No account and no tracking. Out of the box the plugin makes no outbound requests.
 * Optional: connect the shop to the suggestion service for suggested related products, with a short reason, for your best sellers. The free plan includes 100 suggestions a month. Nothing is sent before you click Connect; see External services below.
+* Optional: a licence for the suggestion service, sold at vasenin.com/shop, raises a connected shop's allowance for 36 months: suggestions for 20% of its published products a month, at least 100, and a full refresh every six months. It is one payment, not a subscription. Buy it with Get a licence on the settings screen; a licence bought at vasenin.com/shop instead links to your shop in your licence cabinet there. The plugin itself works the same with or without it.
 
 == Installation ==
 
@@ -75,6 +77,15 @@ Privacy Policy: https://vasenin.com/privacy/
 The settings screen uses the fonts Onest, Unbounded and JetBrains Mono, shipped with the plugin in assets/fonts/ under the SIL Open Font License, Version 1.1 (assets/fonts/OFL.txt). The plugin loads no font from another site.
 
 == Changelog ==
+
+= 1.1.0 =
+* The settings screen offers a licence for the suggestion service: Get a licence buys one for this shop.
+* A shop with a licence sees Licence as its plan, and Extend the licence instead of the purchase button.
+* A product's edit screen has a Related products box: its suggestions with their reasons, and the products pinned to its related list or excluded from it. The product list and the box ask for new suggestions for one product.
+* The settings screen shows the queue: what waits and what failed, with New suggestions for every product, Try the failed ones again and Empty the queue.
+* WP-CLI: `wp vscm related` status, rebuild, drain, queue and links.
+* Suggestions stay current: once a month, the products whose suggestions are more than six months old are queued again, best sellers first, within the plan's monthly allowance.
+* The monthly queueing runs in the background, so it needs no visit to the admin.
 
 = 1.0.2 =
 * Connecting the shop now queues its published products for suggestions, best sellers first. Until now only products edited after connecting were queued, so a shop could connect and see no suggestions.

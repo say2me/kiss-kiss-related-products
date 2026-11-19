@@ -12,8 +12,11 @@ declare(strict_types = 1);
 namespace Vscm\WooRelatedProducts\Admin;
 
 use Vscm\WooRelatedProducts\InitableInterface;
+use Vscm\WooRelatedProducts\Suggestions\Catalog;
 use Vscm\WooRelatedProducts\Suggestions\Connection;
+use Vscm\WooRelatedProducts\Suggestions\Job;
 use Vscm\WooRelatedProducts\Suggestions\Progress;
+use Vscm\WooRelatedProducts\Suggestions\Queue;
 use Vscm\WooRelatedProducts\Suggestions\ServiceClient;
 use Vscm\WooRelatedProducts\Suggestions\ServiceError;
 use Vscm\WooRelatedProducts\Suggestions\SiteStatus;
@@ -25,9 +28,13 @@ defined( 'ABSPATH' ) || exit;
  */
 class ConnectionPanel implements InitableInterface {
 
-	public const CONNECT    = 'vscm_related_connect';
-	public const DISCONNECT = 'vscm_related_disconnect';
-	public const REFRESH    = 'vscm_related_refresh';
+	public const CONNECT     = 'vscm_related_connect';
+	public const DISCONNECT  = 'vscm_related_disconnect';
+	public const REFRESH     = 'vscm_related_refresh';
+	public const REFRESH_ALL = 'vscm_related_refresh_all';
+	public const STOP_ALL    = 'vscm_related_stop_all';
+	public const RETRY       = 'vscm_related_retry';
+	public const CLEAR       = 'vscm_related_clear';
 
 	/**
 	 * The sales site, where the buy, cabinet and legal pages live (C-064). A developer points the plugin at another
@@ -110,6 +117,10 @@ class ConnectionPanel implements InitableInterface {
 		add_action( 'admin_post_' . self::CONNECT, array( $this, 'handle_connect' ) );
 		add_action( 'admin_post_' . self::DISCONNECT, array( $this, 'handle_disconnect' ) );
 		add_action( 'admin_post_' . self::REFRESH, array( $this, 'handle_refresh' ) );
+		add_action( 'admin_post_' . self::REFRESH_ALL, array( $this, 'handle_refresh_all' ) );
+		add_action( 'admin_post_' . self::STOP_ALL, array( $this, 'handle_stop_all' ) );
+		add_action( 'admin_post_' . self::RETRY, array( $this, 'handle_retry' ) );
+		add_action( 'admin_post_' . self::CLEAR, array( $this, 'handle_clear' ) );
 	}
 
 	/**
@@ -162,6 +173,60 @@ class ConnectionPanel implements InitableInterface {
 	}
 
 	/**
+	 * Ask for new suggestions for every published product (for every shop since 2026-11-16). The
+	 * job's record goes first, so no queued row exists without one if the queueing dies part-way. The service's
+	 * allowance sets the pace, and current suggestions stay until new ones arrive.
+	 *
+	 * @return void
+	 */
+	public function handle_refresh_all(): void {
+		$this->guard( self::REFRESH_ALL );
+		if ( null !== $this->connection->site() && ! $this->connection->is_copy() ) {
+			$ids = array_values( array_unique( Catalog::published_ids() ) );
+			( new Job( new Queue() ) )->start( count( $ids ) );
+			( new Queue() )->enqueue( $ids, Job::CAUSE );
+		}
+		$this->back();
+	}
+
+	/**
+	 * Stop asking for every product: the job keeps its counts, its waiting products leave the queue.
+	 *
+	 * @return void
+	 */
+	public function handle_stop_all(): void {
+		$this->guard( self::STOP_ALL );
+		$queue = new Queue();
+		( new Job( $queue ) )->cancel();
+		$queue->delete_cause( Job::CAUSE );
+		$this->back();
+	}
+
+	/**
+	 * Queue the products that failed again.
+	 *
+	 * @return void
+	 */
+	public function handle_retry(): void {
+		$this->guard( self::RETRY );
+		( new Queue() )->retry_failed();
+		$this->back();
+	}
+
+	/**
+	 * Empty the queue, and forget the job it held.
+	 *
+	 * @return void
+	 */
+	public function handle_clear(): void {
+		$this->guard( self::CLEAR );
+		$queue = new Queue();
+		$queue->clear();
+		( new Job( $queue ) )->clear();
+		$this->back();
+	}
+
+	/**
 	 * The section: a page of its own under the settings, its title and intro, then one card.
 	 *
 	 * @return void
@@ -179,6 +244,9 @@ class ConnectionPanel implements InitableInterface {
 			return;
 		}
 		$this->render_status();
+		if ( null !== $this->connection->site() && ! $this->connection->is_copy() ) {
+			$this->render_queue();
+		}
 		// A copy may become a shop of its own: connecting it creates a new site (R5).
 		if ( $this->connection->is_copy() ) {
 			echo '<div class="kk-card"><h3 class="kk-section-title">' . esc_html__( 'Connect this copy as a shop of its own', 'kiss-kiss-related-products' ) . '</h3>';
@@ -271,7 +339,7 @@ class ConnectionPanel implements InitableInterface {
 		$down  = null === $related && $this->status->unreachable();
 		$rows[ __( 'Status', 'kiss-kiss-related-products' ) ] = $reason ?? __( 'On', 'kiss-kiss-related-products' );
 		if ( null !== $related ) {
-			$rows[ __( 'Plan', 'kiss-kiss-related-products' ) ] = 'free' === $related['tier'] ? __( 'Free plan', 'kiss-kiss-related-products' ) : __( 'Purchased plan', 'kiss-kiss-related-products' );
+			$rows[ __( 'Plan', 'kiss-kiss-related-products' ) ] = 'free' === $related['tier'] ? __( 'Free plan', 'kiss-kiss-related-products' ) : __( 'Licence', 'kiss-kiss-related-products' );
 			if ( in_array( $related['status'], array( 'expired', 'revoked' ), true ) ) {
 				$rows[ __( 'Licence', 'kiss-kiss-related-products' ) ] = 'expired' === $related['status'] ? __( 'Expired', 'kiss-kiss-related-products' ) : __( 'Refunded', 'kiss-kiss-related-products' );
 			}
@@ -368,6 +436,7 @@ class ConnectionPanel implements InitableInterface {
 			echo '<tr><th scope="row">' . esc_html( $label ) . '</th><td>' . esc_html( $value ) . '</td></tr>';
 		}
 		echo '</table><div class="kk-actions">';
+		$licensed = null !== $related && 'free' !== $related['tier'];
 		// A copy buys nothing: the site id is the shop's, not the copy's (R5).
 		if ( null !== $site && ! $this->connection->is_copy() ) {
 			$return = add_query_arg( 'vscm-bought', '1', admin_url( 'admin.php?page=' . SettingsPage::SLUG ) );
@@ -379,9 +448,10 @@ class ConnectionPanel implements InitableInterface {
 				),
 				self::sales_url( self::BUY_PATH )
 			);
-			// One primary action per state: during an outage it is Try again.
-			echo '<a class="kk-button' . ( $down ? ' kk-button--secondary' : '' ) . '" id="vscm-buy" href="' . esc_url( $buy ) . '" target="_blank" rel="noopener">' . esc_html__( 'Get more suggestions', 'kiss-kiss-related-products' ) . '</a>';
-			if ( null !== $related && 'free' !== $related['tier'] ) {
+			// One primary action per state: during an outage it is Try again, and with a licence there is none. What the
+			// shop buys is a licence for the service (the owner, 2026-11-16); buying again adds its term.
+			echo '<a class="kk-button' . ( $down || $licensed ? ' kk-button--secondary' : '' ) . '" id="vscm-buy" href="' . esc_url( $buy ) . '" target="_blank" rel="noopener">' . esc_html( $licensed ? __( 'Extend the licence', 'kiss-kiss-related-products' ) : __( 'Get a licence', 'kiss-kiss-related-products' ) ) . '</a>';
+			if ( $licensed ) {
 				echo '<a class="kk-button kk-button--secondary" href="' . esc_url( self::sales_url( self::CABINET_PATH ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'Your licence', 'kiss-kiss-related-products' ) . '</a>';
 			}
 		}
@@ -394,6 +464,53 @@ class ConnectionPanel implements InitableInterface {
 			echo '</form>';
 		}
 		echo '</div></div>';
+	}
+
+	/**
+	 * The queue's card: what waits and what failed, and the requests for every product, the failed ones again, or none.
+	 *
+	 * @return void
+	 */
+	private function render_queue(): void {
+		$queue   = new Queue();
+		$job     = ( new Job( $queue ) )->current();
+		$running = null !== $job && empty( $job['finished_at'] );
+		$waiting = $queue->count();
+		$failed  = $queue->failed_count();
+		echo '<div class="kk-card" id="vscm-queue"><div class="kk-card__head"><h3 class="kk-section-title">' . esc_html__( 'Queue', 'kiss-kiss-related-products' ) . '</h3></div>';
+		echo '<table class="kk-facts" role="presentation">';
+		echo '<tr><th scope="row">' . esc_html__( 'Waiting', 'kiss-kiss-related-products' ) . '</th><td>' . esc_html( number_format_i18n( $waiting ) ) . '</td></tr>';
+		echo '<tr><th scope="row">' . esc_html__( 'Failed', 'kiss-kiss-related-products' ) . '</th><td>' . esc_html( number_format_i18n( $failed ) ) . '</td></tr>';
+		if ( $running ) {
+			echo '<tr><th scope="row">' . esc_html__( 'Every product', 'kiss-kiss-related-products' ) . '</th><td>' . esc_html(
+				sprintf(
+					/* translators: 1: products done, 2: products asked for */
+					__( '%1$s of %2$s done', 'kiss-kiss-related-products' ),
+					number_format_i18n( (int) ( $job['done'] ?? 0 ) ),
+					number_format_i18n( (int) ( $job['total'] ?? 0 ) )
+				)
+			) . '</td></tr>';
+		}
+		echo '</table><div class="kk-actions">';
+		if ( $running ) {
+			$this->open_form( 'vscm-stop-all-form', self::STOP_ALL );
+			$this->submit( __( 'Stop', 'kiss-kiss-related-products' ), 'secondary' );
+		} else {
+			$this->open_form( 'vscm-refresh-all-form', self::REFRESH_ALL );
+			$this->submit( __( 'New suggestions for every product', 'kiss-kiss-related-products' ), 'secondary' );
+		}
+		echo '</form>';
+		if ( $failed > 0 ) {
+			$this->open_form( 'vscm-retry-form', self::RETRY );
+			$this->submit( __( 'Try the failed ones again', 'kiss-kiss-related-products' ), 'secondary' );
+			echo '</form>';
+		}
+		if ( $waiting > 0 ) {
+			$this->open_form( 'vscm-clear-form', self::CLEAR );
+			$this->submit( __( 'Empty the queue', 'kiss-kiss-related-products' ), 'secondary' );
+			echo '</form>';
+		}
+		echo '</div><p class="kk-muted">' . esc_html__( 'New suggestions come at the pace of your plan\'s monthly allowance. Current suggestions stay until new ones arrive.', 'kiss-kiss-related-products' ) . '</p></div>';
 	}
 
 	/**

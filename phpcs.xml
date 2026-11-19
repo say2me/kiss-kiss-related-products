@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Vscm WooRelatedProducts" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/squizlabs/PHP_CodeSniffer/master/phpcs.xsd">
+
+	<description>Product</description>
+	<file>./tests/php/tests</file>
+	<file>./src</file>
+	<file>./kiss-kiss-related-products.php</file>
+	<!-- Exclude  -->
+	<exclude-pattern>/vendor/*</exclude-pattern>
+	<exclude-pattern>/node_modules/*</exclude-pattern>
+	<exclude-pattern>*.min.js</exclude-pattern>
+	<exclude-pattern>/index.php</exclude-pattern>
+	<exclude-pattern>/wordpress/*</exclude-pattern>
+	<exclude-pattern>/build/*</exclude-pattern>
+
+	<arg value="sp" /> <!-- Show sniff and progress -->
+	<arg name="colors" /> <!-- Show results with colors. Disable if working on Windows -->
+	<arg name="basepath" value="." /> <!-- Strip the file paths down to the relevant bit -->
+	<arg name="parallel" value="8" /> 
+	<arg name="extensions" value="php" /> <!-- Limit to PHP files -->
+	
+	<rule ref="WordPress">
+		<exclude name="WordPress.Files.FileName" />
+		<exclude name="Modernize.FunctionCalls.Dirname.FileConstant" />
+	</rule>
+
+	<config name="testVersion" value="8.1-" />
+	<rule ref="PHPCompatibilityWP" />
+
+	<config name="minimum_supported_wp_version" value="6.3" />
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="kiss-kiss-related-products" />
+			</property>
+		</properties>
+	</rule>
+	<!-- WooCommerce's own capabilities: the sniff only knows WordPress core ones. -->
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="manage_woocommerce" />
+				<element value="view_woocommerce_reports" />
+				<element value="edit_products" />
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="SlevomatCodingStandard.TypeHints.DeclareStrictTypes" />
+	<rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly" />
+	<rule ref="SlevomatCodingStandard.Files.TypeNameMatchesFileName">
+		<properties>
+			<property name="rootNamespaces" type="array">
+				<element key="tests/php/tests" value="Vscm\WooRelatedProductsTest" />
+				<element key="src" value="Vscm\WooRelatedProducts" />
+			</property>
+		</properties>
+	</rule>
+
+	
+</ruleset>

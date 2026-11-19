@@ -24,7 +24,7 @@ class Job {
 	/**
 	 * Cause used for rebuild-all queue rows.
 	 */
-	private const CAUSE = 'rebuild-all';
+	public const CAUSE = 'rebuild-all';
 
 	/**
 	 * Queue repository.

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Kiss Kiss Related Products
  * Description: Keeps the related products on your product pages relevant, simply and without any external service.
- * Version: 1.0.2
+ * Version: 1.1.0
  * Author: Slava Vasenin
  * Author URI: https://vasenin.com
  * License: GPL-2.0-or-later
@@ -20,9 +20,11 @@ declare(strict_types = 1);
 
 namespace Vscm\WooRelatedProducts;
 
+use WP_CLI;
+
 defined( 'ABSPATH' ) || exit;
 
-define( 'VSCM_WOO_VERSION', '1.0.2' );
+define( 'VSCM_WOO_VERSION', '1.1.0' );
 
 if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 	require_once __DIR__ . '/vendor/autoload.php';
@@ -56,9 +58,10 @@ function plugin(): Plugin {
 		$container->set( 'plugin_dir', __DIR__ );
 		$container->set( 'plugin_url', rtrim( plugin_dir_url( __FILE__ ), '/' ) );
 		$plugin = new Plugin( $container );
-		// Defaults first: the plugin works with nothing picked, pinned or excluded.
+		// Defaults first: the plugin works with nothing picked, and with what a shop manager pinned or excluded, which is
+		// nothing until they do (for every shop since 2026-11-16).
 		$container->set( Woo\RelatedPicks::class, new Woo\NullRelatedPicks() );
-		$container->set( Woo\RelatedCuration::class, new Woo\NullRelatedCuration() );
+		$container->set( Woo\RelatedCuration::class, new Woo\Overrides() );
 		// Once connected, the stored service picks replace the defaults; an extension may still replace them.
 		Suggestions\Services::defaults( $container );
 		/**
@@ -76,7 +79,20 @@ function plugin(): Plugin {
 		$plugin->add_service( Identity\Challenge::class, new Identity\Challenge() );
 		$plugin->add_service( Rest\VerifyRoute::class, new Rest\VerifyRoute( $container->get( Identity\Challenge::class ) ) );
 		Suggestions\Services::register( $plugin, $container );
+		// The suggestions' commands, for every shop since 2026-11-16. WP-CLI fires cli_init on init, for plugins to add
+		// their commands; nothing else fires it, so the plugin asks nothing about its host.
+		add_action(
+			'cli_init',
+			static function () use ( $container ): void {
+				// @phpstan-ignore-next-line -- WP-CLI class not covered by the installed WP-only stub package.
+				WP_CLI::add_command(
+					'vscm related',
+					new Cli( new Suggestions\Queue(), $container->get( Suggestions\Curator::class ), new Suggestions\Calls(), new Suggestions\Links(), new Suggestions\State(), new Suggestions\ServiceClient(), $container->get( Suggestions\Worker::class ), $container->get( Suggestions\LastRun::class ) )
+				);
+			}
+		);
 		$plugin->add_service( Admin\ConnectionPanel::class, new Admin\ConnectionPanel( $container->get( Suggestions\Connection::class ), $container->get( Suggestions\SiteStatus::class ), $container->get( Suggestions\Progress::class ) ) );
+		$plugin->add_service( Admin\ProductTools::class, new Admin\ProductTools( new Suggestions\Queue(), new Suggestions\Links(), new Woo\Overrides(), $container->get( Suggestions\Connection::class ) ) );
 		$plugin->add_service( Rest\ProgressRoute::class, new Rest\ProgressRoute( $container->get( Suggestions\Progress::class ), $container->get( Admin\ConnectionPanel::class ) ) );
 		$plugin->add_service( Admin\Assets::class, new Admin\Assets() );
 		$plugin->add_service( Admin\SettingsPage::class, new Admin\SettingsPage( $container->get( Admin\Settings::class ), $container->get( Admin\ConnectionPanel::class ) ) );
