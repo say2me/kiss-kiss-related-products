@@ -4,7 +4,7 @@ Tags: related products, cross-selling, brands, categories, woocommerce related p
 Requires at least: 6.7
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,14 +69,17 @@ This plugin can connect to the suggestion service at api.vasenin.com, which sugg
 
 Every request carries the shop's own key and address. Disconnect on the settings screen stops all requests. The service keeps no product data after answering.
 
-Terms of Use: https://vasenin.com/terms/
-Privacy Policy: https://vasenin.com/privacy/
+Terms of Use: https://vasenin.com/shop/terms/
+Privacy Policy: https://vasenin.com/shop/privacy/
 
 == Credits ==
 
 The settings screen uses the fonts Onest, Unbounded and JetBrains Mono, shipped with the plugin in assets/fonts/ under the SIL Open Font License, Version 1.1 (assets/fonts/OFL.txt). The plugin loads no font from another site.
 
 == Changelog ==
+
+= 1.1.1 =
+* The Terms of Use and the Privacy Policy, linked on the settings screen and in this readme, open in the shop at vasenin.com/shop.
 
 = 1.1.0 =
 * The settings screen offers a licence for the suggestion service: Get a licence buys one for this shop.

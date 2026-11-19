@@ -45,8 +45,8 @@ class ConnectionPanel implements InitableInterface {
 	/**
 	 * The sales site's pages, under it.
 	 */
-	public const TERMS_PATH   = 'terms/';
-	public const PRIVACY_PATH = 'privacy/';
+	public const TERMS_PATH   = 'shop/terms/';
+	public const PRIVACY_PATH = 'shop/privacy/';
 	public const BUY_PATH     = 'shop/aiai/buy/';
 	public const CABINET_PATH = 'shop/aiai/cabinet/';
 
@@ -93,7 +93,7 @@ class ConnectionPanel implements InitableInterface {
 	 * A page of the sales site: the address the vscm_related_sales_site filter gives, when it is an http(s) URL,
 	 * else vasenin.com (C-064 R5).
 	 *
-	 * @param string $path The page under the site, such as "terms/".
+	 * @param string $path The page under the site, such as "shop/terms/".
 	 * @return string
 	 */
 	public static function sales_url( string $path ): string {
